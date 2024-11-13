@@ -1,0 +1,22 @@
+{
+    "name": "leomottarocha/cotidiano",
+    "description": "Classe desenvolvida para rotinas do cotidiano",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Source\\": "source/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Léo Motta Rocha",
+            "email": "leomottarocha@hotmail.com",
+            "homepage": "https://github.com/leomottarocha",
+            "role": "Desenvolvedor Full Stack"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {
+
+    }
+}

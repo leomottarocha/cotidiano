@@ -58,17 +58,15 @@ class Cotidiano
         return $diasDaSemana[$diaSemana];
     }
 
-    public function ajustarData($data, int $dias, $operacao = 'adicionar')
+    public function ajustarData($data, int $dias)
     {
-        // Tenta criar um objeto DateTime a partir da data fornecida
         try {
             $date = new DateTime($data);
             $intervalo = new DateInterval('P' . abs($dias) . 'D');
-            ($operacao === 'subtrair') ? $date->sub($intervalo) : $date->add($intervalo);
+            ($dias < 0) ? $date->sub($intervalo) : $date->add($intervalo);
             return $date->format('Y-m-d');
         } catch (Exception $e) {
-            return
-                "ERROR: {$e->getMessage()}";
+            return "ERROR: {$e->getMessage()}";
         }
     }
 
@@ -99,5 +97,20 @@ class Cotidiano
 
 
         return "-";
+    }
+
+    public function gerarSenhaRandomica($tamanho = 16)
+    {
+        $alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@#{}[];()-_+*!';
+        $alphaLength = strlen($alphabet); // Comprimento total do alfabeto
+        $senha = '';
+
+        for ($i = 0; $i < $tamanho; $i++) {
+            // Gera um número aleatório seguro
+            $n = random_int(0, $alphaLength - 1);
+            $senha .= $alphabet[$n]; // Concatena diretamente na variável de senha
+        }
+
+        return $senha;
     }
 }

@@ -1,5 +1,7 @@
 /vendor
+/source/Support/
 /source/Support/Config.php
+/source/Models/conexao.php
 *.log
 .htaccess
 index.php

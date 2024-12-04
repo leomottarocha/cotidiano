@@ -10,6 +10,170 @@ use \PDOException;
 
 class Cotidiano
 {
+
+    public  function selecionarDados($instrucaoSql, $conn)
+    {
+        $data = [];
+        if (!strstr(strtolower($instrucaoSql), "select")) {
+            $data = [
+                "status" => false,
+                "msg_erro" => "A instrução select está incorreta: {$instrucaoSql}",
+                "data" => []
+            ];
+        } else {
+            try {
+                $sql = $conn->prepare($instrucaoSql);
+                $sql->execute();
+                if ($sql->rowCount() > 0) {
+                    $data = [
+                        "status" => true,
+                        "msg_erro" => "",
+                        "total_registros" => $sql->rowCount(),
+                        "data" => $sql->fetchAll()
+                    ];
+                } else {
+                    $data = [
+                        "status" => false,
+                        "msg_erro" => "Não há registros com a instrução SQL: {$instrucaoSql}",
+                        "total_registros" => $sql->rowCount(),
+                        "data" => []
+                    ];
+                }
+            } catch (PDOException $e) {
+                $data = [
+                    "status" => false,
+                    "msg_erro" => $e->getMessage(),
+                    "data" => []
+                ];
+            }
+        }
+        return $data;
+    }
+
+    public  function atualizarDados($instrucaoSql, $conn)
+    {
+        $data = [];
+
+        if (!strstr(strtolower($instrucaoSql), "where") or !strstr(strtolower($instrucaoSql), "update")) {
+            $data = [
+                "status" => false,
+                "msg_erro" => "Não é permitido realizar um update sem a clausula WHERE: {$instrucaoSql}",
+                "data" => []
+            ];
+        } else {
+            try {
+                $sql = $conn->prepare($instrucaoSql);
+                $sql->execute();
+                if ($sql->rowCount() > 0) {
+                    $data = [
+                        "status" => true,
+                        "msg_erro" => "",
+                        "total_registros" => $sql->rowCount(),
+                        "data" => []
+                    ];
+                } else {
+                    $data = [
+                        "status" => false,
+                        "msg_erro" => "Não há registros com a instrução SQL: {$instrucaoSql}",
+                        "total_registros" => $sql->rowCount(),
+                        "data" => []
+                    ];
+                }
+            } catch (PDOException $e) {
+                $data = [
+                    "status" => false,
+                    "msg_erro" => $e->getMessage(),
+                    "data" => []
+                ];
+            }
+        }
+        return $data;
+    }
+
+    public  function deletarDados($instrucaoSql, $conn)
+    {
+        $data = [];
+
+        if (!strstr(strtolower($instrucaoSql), "where") or !strstr(strtolower($instrucaoSql), "delete")) {
+            $data = [
+                "status" => false,
+                "msg_erro" => "Não é permitido realizar um delete sem a clausula WHERE: {$instrucaoSql}",
+                "data" => []
+            ];
+        } else {
+            try {
+                $sql = $conn->prepare($instrucaoSql);
+                $sql->execute();
+                if ($sql->rowCount() > 0) {
+                    $data = [
+                        "status" => true,
+                        "msg_erro" => "",
+                        "total_registros" => $sql->rowCount(),
+                        "data" => []
+                    ];
+                } else {
+                    $data = [
+                        "status" => false,
+                        "msg_erro" => "Não há registros com a instrução SQL: {$instrucaoSql}",
+                        "total_registros" => $sql->rowCount(),
+                        "data" => []
+                    ];
+                }
+            } catch (PDOException $e) {
+                $data = [
+                    "status" => false,
+                    "msg_erro" => $e->getMessage(),
+                    "data" => []
+                ];
+            }
+        }
+        return $data;
+    }
+
+    public  function cadastrarDados($instrucaoSql, $conn)
+    {
+        $data = [];
+
+        if (!strstr(strtolower($instrucaoSql), "insert")) {
+            $data = [
+                "status" => false,
+                "msg_erro" => "A clausula insert está incorreta: {$instrucaoSql}",
+                "data" => []
+            ];
+        } else {
+            try {
+                $sql = $conn->prepare($instrucaoSql);
+                $sql->execute();
+                if ($sql->rowCount() > 0) {
+
+                    $data = [
+                        "status" => true,
+                        "msg_erro" => "",
+                        "total_registros" => $sql->rowCount(),
+                        "data" => [
+                            "id" => $conn->lastInsertId(),
+                            "sql" => $instrucaoSql
+                        ]
+                    ];
+                } else {
+                    $data = [
+                        "status" => false,
+                        "msg_erro" => "Não há registros com a instrução SQL: {$instrucaoSql}",
+                        "total_registros" => $sql->rowCount(),
+                        "data" => []
+                    ];
+                }
+            } catch (PDOException $e) {
+                $data = [
+                    "status" => false,
+                    "msg_erro" => $e->getMessage(),
+                    "data" => []
+                ];
+            }
+        }
+        return $data;
+    }
+
     public function contarDias($dataInicio, $dataTermino, $timeZone = 'America/Sao_Paulo')
     {
         try {

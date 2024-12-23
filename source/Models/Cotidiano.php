@@ -222,11 +222,11 @@ class Cotidiano
         return $diasDaSemana[$diaSemana];
     }
 
-    public function ajustarData($data, int $dias)
+    public function ajustarData($data, int $dias, string $periodo = "Days")
     {
         try {
             $date = new DateTime($data);
-            $intervalo = new DateInterval('P' . abs($dias) . 'D');
+            $intervalo = new DateInterval('P' . abs($dias) . $periodo[0]);
             ($dias < 0) ? $date->sub($intervalo) : $date->add($intervalo);
             return $date->format('Y-m-d');
         } catch (Exception $e) {

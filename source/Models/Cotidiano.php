@@ -174,6 +174,48 @@ class Cotidiano
         return $data;
     }
 
+    public function contarTempo($dataInicio, $dataTermino, $unidade = 'dias', $timeZone = 'America/Sao_Paulo')
+    {
+        try {
+            // Configura o fuso horário
+            $timeZone = new DateTimeZone($timeZone);
+            $dataInicio = new DateTime($dataInicio, $timeZone);
+            $dataTermino = new DateTime($dataTermino, $timeZone);
+
+            // Calcula o intervalo entre as duas datas
+            $intervalo = $dataInicio->diff($dataTermino);
+
+            // Verifica a inversão do intervalo para ajustar o sinal
+            $invertido = $intervalo->invert == 1 ? -1 : 1;
+
+            // Calcula o total de minutos, horas, dias, meses e anos
+            $totalMinutos = $intervalo->days * 24 * 60 + $intervalo->h * 60 + $intervalo->i;
+            $totalHoras = $intervalo->days * 24 + $intervalo->h;
+            $totalDias = $intervalo->days;
+            $totalMeses = $intervalo->y * 12 + $intervalo->m;
+            $totalAnos = $intervalo->y;
+
+            // Retorna o resultado de acordo com a unidade especificada
+            switch (strtolower($unidade)) {
+                case 'minutos':
+                    return $totalMinutos * $invertido . " minutos";
+                case 'horas':
+                    return $totalHoras * $invertido . " horas";
+                case 'dias':
+                    return $totalDias * $invertido . " dias";
+                case 'meses':
+                    return $totalMeses * $invertido . " meses";
+                case 'anos':
+                    return $totalAnos * $invertido . " anos";
+                default:
+                    throw new Exception('Unidade de tempo inválida. Use: minutos, horas, dias, meses ou anos.');
+            }
+        } catch (Exception $exception) {
+            return 'Erro: ' . $exception->getMessage();
+        }
+    }
+
+
     public function contarDias($dataInicio, $dataTermino, $timeZone = 'America/Sao_Paulo')
     {
         try {

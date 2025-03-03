@@ -215,9 +215,15 @@ class Cotidiano
         }
     }
 
-
+    /**
+     * Esta função está obsoleta e será removida em versões futuras.
+     * @deprecated
+     */
     public function contarDias($dataInicio, $dataTermino, $timeZone = 'America/Sao_Paulo')
     {
+
+        trigger_error("A função 'contarDias' está obsoleta e será removida em versões futuras.", E_USER_DEPRECATED);
+
         try {
             $timeZone       = new DateTimeZone($timeZone);
             $dataInicio     = new DateTime($dataInicio, $timeZone);
@@ -295,13 +301,21 @@ class Cotidiano
 
     public function formatarData($data, $formato = "d/m/Y")
     {
+        // Verifica se o valor de $data é uma string não vazia
+        if (empty($data) || !is_string($data)) {
+            return "-";
+        }
+
+        // Tenta criar o objeto DateTime com o formato 'Y-m-d'
         $data_obj = DateTime::createFromFormat('Y-m-d', $data);
 
+        // Verifica se a data foi criada corretamente e corresponde ao formato 'Y-m-d'
         if ($data_obj && $data_obj->format('Y-m-d') === $data) {
+            // Retorna a data formatada de acordo com o formato desejado
             return $data_obj->format($formato);
         }
 
-
+        // Se a data não for válida, retorna "-"
         return "-";
     }
 

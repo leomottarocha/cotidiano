@@ -14,7 +14,7 @@ class Cotidiano
     public  function selecionarDados($instrucaoSql, $conn)
     {
         $data = [];
-        if (!strstr(strtolower($instrucaoSql), "select")) {
+        if (!strstr(mb_strtolower($instrucaoSql ?? ""), "select")) {
             $data = [
                 "status" => false,
                 "msg_erro" => "A instrução select está incorreta: {$instrucaoSql}",
@@ -54,7 +54,7 @@ class Cotidiano
     {
         $data = [];
 
-        if (!strstr(strtolower($instrucaoSql), "where") or !strstr(strtolower($instrucaoSql), "update")) {
+        if (!strstr(mb_strtolower($instrucaoSql ?? ""), "where") or !strstr(mb_strtolower($instrucaoSql ?? ""), "update")) {
             $data = [
                 "status" => false,
                 "msg_erro" => "Não é permitido realizar um update sem a clausula WHERE: {$instrucaoSql}",
@@ -94,7 +94,7 @@ class Cotidiano
     {
         $data = [];
 
-        if (!strstr(strtolower($instrucaoSql), "where") or !strstr(strtolower($instrucaoSql), "delete")) {
+        if (!strstr(mb_strtolower($instrucaoSql ?? ""), "where") or !strstr(mb_strtolower($instrucaoSql ?? ""), "delete")) {
             $data = [
                 "status" => false,
                 "msg_erro" => "Não é permitido realizar um delete sem a clausula WHERE: {$instrucaoSql}",
@@ -134,7 +134,7 @@ class Cotidiano
     {
         $data = [];
 
-        if (!strstr(strtolower($instrucaoSql), "insert")) {
+        if (!strstr(mb_strtolower($instrucaoSql ?? ""), "insert")) {
             $data = [
                 "status" => false,
                 "msg_erro" => "A clausula insert está incorreta: {$instrucaoSql}",
@@ -196,7 +196,7 @@ class Cotidiano
             $totalAnos = $intervalo->y;
 
             // Retorna o resultado de acordo com a unidade especificada
-            switch (strtolower($unidade)) {
+            switch (mb_strtolower($unidade ?? "")) {
                 case 'minutos':
                     return $totalMinutos * $invertido . " minutos";
                 case 'horas':
@@ -284,7 +284,7 @@ class Cotidiano
 
     public function retornarDiaUtil($data_desligamento)
     {
-        $dia_semana = strtolower($this->retornarDiaDaSemana($data_desligamento));
+        $dia_semana = mb_strtolower($this->retornarDiaDaSemana($data_desligamento) ?? "");
 
         $dias_ajuste = [
             'sexta-feira' => 3,

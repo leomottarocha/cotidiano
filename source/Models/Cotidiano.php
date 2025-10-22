@@ -13,6 +13,28 @@ use \PDOException;
 class Cotidiano
 {
 
+    public function validarCnpj(string $cnpj): bool
+    {
+        $cnpj = preg_replace('/\D+/', '', $cnpj ?? '');
+        if (strlen($cnpj) !== 14 || preg_match('/^(\d)\1{13}$/', $cnpj)) {
+            return false;
+        }
+        $peso1 = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
+        $peso2 = [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
+
+        $calc = function (array $peso, string $num): int {
+            $sum = 0;
+            foreach ($peso as $i => $p) {
+                $sum += (int)$num[$i] * $p;
+            }
+            $resto = $sum % 11;
+            return ($resto < 2) ? 0 : 11 - $resto;
+        };
+
+        $d1 = $calc($peso1, substr($cnpj, 0, 12));
+        $d2 = $calc($peso2, substr($cnpj, 0, 12) . $d1);
+        return $cnpj[12] == (string)$d1 && $cnpj[13] == (string)$d2;
+    }
 
     public function validarCpf(string $cpf): bool
     {

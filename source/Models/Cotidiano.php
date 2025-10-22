@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Source\Models;
 
 use \DateTime;
@@ -10,6 +12,27 @@ use \PDOException;
 
 class Cotidiano
 {
+
+
+    public function validarCpf(string $cpf): bool
+    {
+        $cpf = preg_replace('/\D+/', '', $cpf ?? '');
+        if (strlen($cpf) !== 11 || preg_match('/^(\d)\1{10}$/', $cpf)) {
+            return false;
+        }
+
+        for ($t = 9; $t < 11; $t++) {
+            $sum = 0;
+            for ($i = 0; $i < $t; $i++) {
+                $sum += (int)$cpf[$i] * (($t + 1) - $i);
+            }
+            $d = ((10 * $sum) % 11) % 10;
+            if ($cpf[$t] != $d) {
+                return false;
+            }
+        }
+        return true;
+    }
 
     public  function selecionarDados($instrucaoSql, $conn)
     {
@@ -319,7 +342,7 @@ class Cotidiano
         return "-";
     }
 
-    public function gerarSenhaRandomica($tamanho = 16)
+    public function gerarSenhaRandomica(int $tamanho = 16)
     {
         $alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@#{}[];()-_+*!';
         $alphaLength = strlen($alphabet); // Comprimento total do alfabeto

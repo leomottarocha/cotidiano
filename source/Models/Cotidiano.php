@@ -13,6 +13,19 @@ use \PDOException;
 class Cotidiano
 {
 
+    public function mascararCpf(string $cpf): string
+    {
+        $d = preg_replace('/\D+/', '', $cpf ?? '');
+        if (strlen($d) !== 11) return $cpf;
+        return substr($d, 0, 3) . '.' . substr($d, 3, 3) . '.' . substr($d, 6, 3) . '-' . substr($d, 9, 2);
+    }
+
+    public function mascararCnpj(string $cnpj): string
+    {
+        $d = preg_replace('/\D+/', '', $cnpj ?? '');
+        if (strlen($d) !== 14) return $cnpj;
+        return substr($d, 0, 2) . '.' . substr($d, 2, 3) . '.' . substr($d, 5, 3) . '/' . substr($d, 8, 4) . '-' . substr($d, 12, 2);
+    }
     public function validarCnpj(string $cnpj): bool
     {
         $cnpj = preg_replace('/\D+/', '', $cnpj ?? '');

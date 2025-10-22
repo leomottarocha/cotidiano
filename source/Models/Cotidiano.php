@@ -278,28 +278,6 @@ final class Cotidiano
         }
     }
 
-    /**
-     * Esta função está obsoleta e será removida em versões futuras.
-     * @deprecated
-     */
-    public function contarDias($dataInicio, $dataTermino, $timeZone = 'America/Sao_Paulo')
-    {
-
-        trigger_error("A função 'contarDias' está obsoleta e será removida em versões futuras.", E_USER_DEPRECATED);
-
-        try {
-            $timeZone       = new DateTimeZone($timeZone);
-            $dataInicio     = new DateTime($dataInicio, $timeZone);
-            $dataTermino    = new DateTime($dataTermino, $timeZone);
-
-            $intervalo = $dataInicio->diff($dataTermino);
-            $totalDias    = ($intervalo->invert == 1) ? -abs($intervalo->days) : $intervalo->days;
-            return $totalDias;
-        } catch (PDOException $exception) {
-            var_dump($exception->getMessage());
-        }
-    }
-
     public function letrasMinusculas(array $dados)
     {
         return array_unique(array_map('mb_strtolower', $dados));

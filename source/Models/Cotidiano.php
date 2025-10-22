@@ -10,7 +10,7 @@ use \Exception;
 use \DateTimeZone;
 use \PDOException;
 
-class Cotidiano
+final class Cotidiano
 {
 
    public function somenteNumeros(?string $valor): string
@@ -406,7 +406,6 @@ class Cotidiano
             'ã' => 'a',
             'â' => 'a',
             'ä' => 'a',
-            'á' => 'a',
             'é' => 'e',
             'è' => 'e',
             'ê' => 'e',

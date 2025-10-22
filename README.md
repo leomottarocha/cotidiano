@@ -202,16 +202,6 @@ Antes de contribuir:
 
 ---
 
-## 🧾 Changelog
-
-### v1.0.0
-- Primeira versão pública  
-- Validação e formatação de CPF/CNPJ  
-- Funções de datas, strings e senhas  
-- CRUD PDO com validações básicas  
-
----
-
 ## 📄 Licença
 
 Distribuído sob a **Licença MIT**.  

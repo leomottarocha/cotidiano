@@ -13,6 +13,11 @@ use \PDOException;
 class Cotidiano
 {
 
+   public function somenteNumeros(?string $valor): string
+    {
+        return preg_replace('/\D+/', '', $valor ?? '');
+    }
+
     public function mascararCpf(string $cpf): string
     {
         $d = preg_replace('/\D+/', '', $cpf ?? '');

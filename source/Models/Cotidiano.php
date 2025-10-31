@@ -13,7 +13,7 @@ use \PDOException;
 final class Cotidiano
 {
 
-   public function somenteNumeros(?string $valor): string
+    public function somenteNumeros(?string $valor): string
     {
         return preg_replace('/\D+/', '', $valor ?? '');
     }
@@ -437,5 +437,106 @@ final class Cotidiano
         ];
 
         return strtr($string, $acentos);
+    }
+
+    function consultarCEP(string $cep): ?array
+    {
+        // Sanitiza o CEP (remove tudo que não for número)
+        $cep = preg_replace('/\D/', '', $cep);
+
+        // Verifica formato válido (8 dígitos)
+        if (strlen($cep) !== 8) {
+            return null;
+        }
+
+        // Monta a URL
+        $url = "https://viacep.com.br/ws/{$cep}/json/";
+
+        // Usa cURL para maior controle e timeout
+        $ch = curl_init();
+        curl_setopt_array($ch, [
+            CURLOPT_URL => $url,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT => 5,
+        ]);
+
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        // Verifica se houve erro na requisição
+        if ($response === false || $httpCode !== 200) {
+            return null;
+        }
+
+        // Decodifica o JSON
+        $data = json_decode($response, true);
+
+        // Verifica se o CEP existe (ViaCEP retorna {"erro": true} quando não encontra)
+        if (isset($data['erro']) && $data['erro'] === true) {
+            return null;
+        }
+
+        return $data;
+    }
+
+    function urlValida(string $url, bool $checkOnline = true): array
+    {
+        $resultado = [
+            'url' => $url,
+            'formato_valido' => false,
+            'http_status' => null,
+            'acessivel' => false,
+            'erro' => null
+        ];
+
+        // ✅ Validação de formato
+        if (!filter_var($url, FILTER_VALIDATE_URL)) {
+            $resultado['erro'] = 'Formato inválido';
+            return $resultado;
+        }
+
+        $resultado['formato_valido'] = true;
+
+        // 🔄 Sem verificação online? retorna aqui
+        if (!$checkOnline) {
+            return $resultado;
+        }
+
+        // ⚙️ Configuração cURL realista
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_NOBODY => true,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT => 7,
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_SSL_VERIFYHOST => false,
+            CURLOPT_USERAGENT => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36',
+            CURLOPT_HTTPHEADER => [
+                'Accept-Language: en-US,en;q=0.9',
+                'Connection: keep-alive'
+            ]
+        ]);
+
+        $exec = curl_exec($ch);
+
+        if ($exec === false) {
+            $resultado['erro'] = curl_error($ch);
+            curl_close($ch);
+            return $resultado;
+        }
+
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        $resultado['http_status'] = $httpCode;
+
+        // 🔍 LinkedIn e outros sites bloqueiam bots, mas isso ainda é uma resposta válida
+        if ($httpCode > 0) {
+            $resultado['acessivel'] = true;
+        }
+
+        return $resultado;
     }
 }

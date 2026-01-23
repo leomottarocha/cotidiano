@@ -9,6 +9,7 @@ use \DateInterval;
 use \Exception;
 use \DateTimeZone;
 use \PDOException;
+use \PDO;
 
 final class Cotidiano
 {
@@ -375,7 +376,7 @@ final class Cotidiano
         return $senha;
     }
 
-    function removerAcentos(string $string)
+    public function removerAcentos(string $string)
     {
         // Substitui os caracteres acentuados pelos correspondentes sem acento
         $acentos = [
@@ -439,7 +440,7 @@ final class Cotidiano
         return strtr($string, $acentos);
     }
 
-    function consultarCEP(string $cep): ?array
+    public function consultarCEP(string $cep): ?array
     {
         // Sanitiza o CEP (remove tudo que não for número)
         $cep = preg_replace('/\D/', '', $cep);
@@ -480,7 +481,7 @@ final class Cotidiano
         return $data;
     }
 
-    function urlValida(string $url, bool $checkOnline = true): array
+    public function urlValida(string $url, bool $checkOnline = true): array
     {
         $resultado = [
             'url' => $url,
@@ -538,5 +539,50 @@ final class Cotidiano
         }
 
         return $resultado;
+    }
+
+    public function insert(string $table, array $data, PDO $conn): array
+    {
+        // (opcional, mas recomendado) valida nomes
+        if (!preg_match('/^[a-zA-Z0-9_]+$/', $table)) {
+            return ["status" => false, "msg_erro" => "Tabela inválida: {$table}", "data" => []];
+        }
+
+        $cols = array_keys($data);
+        if (!$cols) {
+            return ["status" => false, "msg_erro" => "Array vazio.", "data" => []];
+        }
+
+        foreach ($cols as $c) {
+            if (!preg_match('/^[a-zA-Z0-9_]+$/', $c)) {
+                return ["status" => false, "msg_erro" => "Coluna inválida: {$c}", "data" => []];
+            }
+        }
+
+        $columns = implode(", ", array_map(fn($c) => "`{$c}`", $cols));
+        $params  = implode(", ", array_map(fn($c) => ":{$c}", $cols));
+
+        $sql = "INSERT INTO `{$table}` ({$columns}) VALUES ({$params})";
+
+        try {
+            $stmt = $conn->prepare($sql);
+            $stmt->execute($data);
+
+            return [
+                "status" => true,
+                "msg_erro" => "",
+                "total_registros" => $stmt->rowCount(),
+                "data" => [
+                    "id" => $conn->lastInsertId(),
+                    "sql" => $sql
+                ]
+            ];
+        } catch (PDOException $e) {
+            return [
+                "status" => false,
+                "msg_erro" => $e->getMessage(),
+                "data" => ["sql" => $sql]
+            ];
+        }
     }
 }

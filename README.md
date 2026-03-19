@@ -1,3 +1,11 @@
+# Cotidfiano
+[![maintainer](https://img.shields.io/badge/maintainer-leomottarocha-blue)](https://github.com/leomottarocha)
+[![source](https://img.shields.io/badge/source-leomottarocha/cotidiano-blue)](https://github.com/leomottarocha/cotidiano)
+[![php](https://img.shields.io/packagist/php-v/leomottarocha/cotidiano)](https://packagist.org/packages/leomottarocha/cotidiano)
+[![release](https://img.shields.io/packagist/v/leomottarocha/cotidiano)](https://packagist.org/packages/leomottarocha/cotidiano)
+[![license](https://img.shields.io/packagist/l/leomottarocha/cotidiano)](https://packagist.org/packages/leomottarocha/cotidiano)
+[![downloads](https://img.shields.io/packagist/dt/leomottarocha/cotidiano)](https://packagist.org/packages/leomottarocha/cotidiano)
+
 # Cotidiano (PHP Utilities)
 
 Conjunto de utilitários em PHP para o dia a dia de desenvolvimento, com foco em **formatação/validação de CPF/CNPJ**, **datas e horários**, **sanitização de strings**, **geração de senhas**, **operações básicas com PDO** (SELECT/INSERT/UPDATE/DELETE com retornos padronizados) e **utilitários HTTP** (ViaCEP e verificação de URL).

@@ -75,43 +75,90 @@ final class Cotidiano
         return true;
     }
 
-
-
-    public function contarTempo($dataInicio, $dataTermino, $unidade = 'dias', $timeZone = 'America/Sao_Paulo')
-    {
+    public function contarTempo(
+        $dataInicio,
+        $dataTermino,
+        $unidade = 'dias',
+        $comTexto = false,
+        $timeZone = 'America/Sao_Paulo'
+    ) {
         try {
-            // Configura o fuso horário
             $timeZone = new DateTimeZone($timeZone);
-            $dataInicio = new DateTime($dataInicio, $timeZone);
-            $dataTermino = new DateTime($dataTermino, $timeZone);
 
-            // Calcula o intervalo entre as duas datas
+            $dataInicioOriginal  = trim((string) $dataInicio);
+            $dataTerminoOriginal = trim((string) $dataTermino);
+
+            $inicioApenasData  = preg_match('/^\d{4}-\d{2}-\d{2}$/', $dataInicioOriginal);
+            $terminoApenasData = preg_match('/^\d{4}-\d{2}-\d{2}$/', $dataTerminoOriginal);
+
+            if ($inicioApenasData) {
+                $dataInicio = DateTime::createFromFormat('!Y-m-d', $dataInicioOriginal, $timeZone);
+                $dataInicio->setTime(0, 0, 0);
+            } else {
+                $dataInicio = new DateTime($dataInicioOriginal, $timeZone);
+            }
+
+            if ($terminoApenasData) {
+                $dataTermino = DateTime::createFromFormat('!Y-m-d', $dataTerminoOriginal, $timeZone);
+                $dataTermino->setTime(0, 0, 0);
+            } else {
+                $dataTermino = new DateTime($dataTerminoOriginal, $timeZone);
+            }
+
+            if (!$dataInicio || !$dataTermino) {
+                throw new Exception('Uma das datas informadas é inválida.');
+            }
+
             $intervalo = $dataInicio->diff($dataTermino);
-
-            // Verifica a inversão do intervalo para ajustar o sinal
             $invertido = $intervalo->invert == 1 ? -1 : 1;
 
-            // Calcula o total de minutos, horas, dias, meses e anos
-            $totalMinutos = $intervalo->days * 24 * 60 + $intervalo->h * 60 + $intervalo->i;
-            $totalHoras = $intervalo->days * 24 + $intervalo->h;
-            $totalDias = $intervalo->days;
-            $totalMeses = $intervalo->y * 12 + $intervalo->m;
-            $totalAnos = $intervalo->y;
+            $totalSegundos = ($intervalo->days * 24 * 60 * 60) + ($intervalo->h * 3600) + ($intervalo->i * 60) + $intervalo->s;
+            $totalMinutos  = ($intervalo->days * 24 * 60) + ($intervalo->h * 60) + $intervalo->i;
+            $totalHoras    = ($intervalo->days * 24) + $intervalo->h;
+            $totalDias     = $intervalo->days;
+            $totalSemanas  = intdiv($intervalo->days, 7);
+            $totalMeses    = ($intervalo->y * 12) + $intervalo->m;
+            $totalAnos     = $intervalo->y;
 
-            // Retorna o resultado de acordo com a unidade especificada
-            switch (mb_strtolower($unidade ?? "")) {
+            $formatar = function ($valor, $texto) use ($comTexto) {
+                return $comTexto ? $valor . ' ' . $texto : $valor;
+            };
+
+            switch (mb_strtolower($unidade ?? '')) {
+                case 'segundos':
+                    return $formatar($totalSegundos * $invertido, 'segundos');
+
                 case 'minutos':
-                    return $totalMinutos * $invertido . " minutos";
+                    return $formatar($totalMinutos * $invertido, 'minutos');
+
                 case 'horas':
-                    return $totalHoras * $invertido . " horas";
+                    return $formatar($totalHoras * $invertido, 'horas');
+
+                case 'horas_minutos':
+                    $sinal = $invertido < 0 ? '-' : '';
+
+                    if ($comTexto) {
+                        return $sinal . $totalHoras . ' horas e ' . $intervalo->i . ' minutos';
+                    }
+
+                    return $sinal . $totalHoras . ':' . str_pad((string) $intervalo->i, 2, '0', STR_PAD_LEFT);
+
                 case 'dias':
-                    return $totalDias * $invertido . " dias";
+                    return $formatar($totalDias * $invertido, 'dias');
+
+                case 'semanas':
+                    return $formatar($totalSemanas * $invertido, 'semanas');
+
                 case 'meses':
-                    return $totalMeses * $invertido . " meses";
+                    return $formatar($totalMeses * $invertido, 'meses');
+
                 case 'anos':
-                    return $totalAnos * $invertido . " anos";
+                    return $formatar($totalAnos * $invertido, 'anos');
+
                 default:
-                    throw new Exception('Unidade de tempo inválida. Use: minutos, horas, dias, meses ou anos.');
+                    throw new Exception(
+                        'Unidade de tempo inválida. Use: segundos, minutos, horas, horas_minutos, dias, semanas, meses ou anos.'
+                    );
             }
         } catch (Exception $exception) {
             return 'Erro: ' . $exception->getMessage();

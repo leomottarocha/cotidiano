@@ -8,10 +8,10 @@
 
 # Cotidiano (PHP Utilities)
 
-Conjunto de utilitários em PHP para o dia a dia de desenvolvimento, com foco em **formatação/validação de CPF/CNPJ**, **datas e horários**, **sanitização de strings**, **geração de senhas**, **operações básicas com PDO** (SELECT/INSERT/UPDATE/DELETE com retornos padronizados) e **utilitários HTTP** (ViaCEP e verificação de URL).
+Conjunto de utilitários em PHP para o dia a dia de desenvolvimento, com foco em **formatação/validação de CPF/CNPJ**, **datas e horários**, **sanitização de strings**, **geração de senhas**, **operações com PDO** (SELECT/INSERT/UPDATE/DELETE com retornos padronizados) e **utilitários HTTP** (ViaCEP e verificação de URL).
 
 > **Namespace:** `Source\Models`  
-> **Classe:** `final Cotidiano`  
+> **Classes:** `final Cotidiano`, `final Cpf`, `final Cnpj`  
 > **Requisitos:** PHP **8.1+** (recomendado 8.2/8.3), PDO habilitado e `ext-curl` para métodos HTTP.
 
 ---
@@ -24,13 +24,13 @@ Conjunto de utilitários em PHP para o dia a dia de desenvolvimento, com foco em
 {
   "autoload": {
     "psr-4": {
-      "Source\\Models\\": "src/Models/"
+      "Source\\Models\\": "source/Models/"
     }
   }
 }
 ```
 
-Coloque o arquivo `Cotidiano.php` em `src/Models/` (ou ajuste conforme sua estrutura) e rode:
+Coloque os arquivos `Cotidiano.php`, `CPF.php` e `CNPJ.php` em `source/Models/` (ou ajuste conforme sua estrutura) e rode:
 
 ```bash
 composer dump-autoload
@@ -56,9 +56,11 @@ $c = new Cotidiano();
 - `somenteNumeros()` → remove tudo que não é número  
 - `mascararCpf()` / `mascararCnpj()` → aplica máscara  
 - `validarCpf()` / `validarCnpj()` → valida dígitos verificadores  
+- `limparCpf()` / `limparCnpj()` → remove máscara e normaliza documento  
+- `cnpjNumerico()` / `cnpjAlfanumerico()` → diferencia o formato do CNPJ  
 
 🕒 **Datas e Tempo**  
-- `contarTempo()` → diferença entre duas datas em minutos/horas/dias/meses/anos  
+- `contarTempo()` → diferença entre duas datas em segundos/minutos/horas/dias/semanas/meses/anos  
 - `retornarDiaDaSemana()` → retorna o dia da semana em português  
 - `ajustarData()` → soma ou subtrai dias/meses/anos  
 - `retornarDiaUtil()` → avança para o próximo dia útil (regra simples)  
@@ -72,8 +74,9 @@ $c = new Cotidiano();
 - `gerarSenhaRandomica()` → gera senha forte com `random_int()`  
 
 🗄️ **Banco de Dados (PDO)**  
+- `insert()` → INSERT com placeholders nomeados e `lastInsertId()`  
 - `selecionarDados()` → SELECT padronizado  
-- `cadastrarDados()` → INSERT com `lastInsertId()`  
+- `cadastrarDados()` → INSERT a partir de SQL livre com `lastInsertId()`  
 - `atualizarDados()` → UPDATE (exige `WHERE`)  
 - `deletarDados()` → DELETE (exige `WHERE`)  
 
@@ -82,10 +85,13 @@ $c = new Cotidiano();
 - `urlValida()` → valida formato e, opcionalmente, checa status HTTP (HEAD/redirects)  
 
 > **Mudanças recentes**  
-> - Classe marcada como **`final`**  
+> - Classe `Cotidiano` marcada como **`final`**  
+> - **Novo:** separação das responsabilidades em `Cpf` e `Cnpj`, mantendo `Cotidiano` como fachada  
+> - **Novo:** `limparCpf()` e `limparCnpj()`  
+> - **Novo:** suporte a **CNPJ alfanumérico**, sem perder compatibilidade com o formato tradicional  
+> - **Novo:** `insert($table, array $data, PDO $conn)` com colunas parametrizadas  
 > - **Novo:** `consultarCEP(cep)` (ViaCEP, `ext-curl`)  
-> - **Novo:** `urlValida(url, checkOnline=false)` (validação + verificação online opcional)  
-
+> - **Novo:** `urlValida(url, checkOnline=true)` (validação + verificação online opcional)  
 
 ---
 
@@ -94,23 +100,29 @@ $c = new Cotidiano();
 | Método | Descrição | Exemplo |
 |:--|:--|:--|
 | `somenteNumeros($valor)` | Mantém apenas dígitos. | `(21) 99999-0000 → 21999990000` |
-| `mascararCpf($cpf)` | Aplica máscara 000.000.000-00. | `12345678901 → 123.456.789-01` |
-| `mascararCnpj($cnpj)` | Aplica máscara 00.000.000/0000-00. | `11222333000181 → 11.222.333/0001-81` |
+| `mascararCpf($cpf)` | Aplica máscara `000.000.000-00`. | `12345678901 → 123.456.789-01` |
 | `validarCpf($cpf)` | Valida CPF. | `true/false` |
-| `validarCnpj($cnpj)` | Valida CNPJ. | `true/false` |
-| `contarTempo($ini,$fim,$unidade,$tz)` | Diferença em minutos/horas/dias/meses/anos. | `"9 dias"` |
+| `limparCpf($cpf)` | Remove máscara do CPF. | `123.456.789-01 → 12345678901` |
+| `mascararCnpj($cnpj)` | Aplica máscara `00.000.000/0000-00`. | `11222333000181 → 11.222.333/0001-81` |
+| `validarCnpj($cnpj)` | Valida CNPJ numérico ou alfanumérico. | `true/false` |
+| `limparCnpj($cnpj)` | Remove máscara e normaliza CNPJ. | `11.222.333/0001-81 → 11222333000181` |
+| `cnpjNumerico($cnpj)` | Verifica se o CNPJ está no formato numérico. | `true/false` |
+| `cnpjAlfanumerico($cnpj)` | Verifica se o CNPJ está no formato alfanumérico. | `true/false` |
+| `contarTempo($ini,$fim,$unidade,$comTexto,$tz)` | Diferença em segundos/minutos/horas/dias/semanas/meses/anos. | `"9 dias"` |
 | `retornarDiaDaSemana($data)` | Dia da semana em pt-BR. | `"Quarta-feira"` |
 | `ajustarData($data,$dias,$periodo)` | Soma/subtrai D/M/Y. | `2025-10-25` |
 | `retornarDiaUtil($data)` | Próximo dia útil (regra simples). | `2025-10-27` |
 | `formatarData($data,$formato)` | Formata `Y-m-d` em outro formato. | `22/10/2025` |
 | `gerarSenhaRandomica($tamanho)` | Senha forte com símbolos. | `"A9@bZ..."` |
+| `letrasMinusculas($dados)` | Normaliza valores em minúsculas e remove duplicados. | `['A','a'] → ['a']` |
 | `removerAcentos($string)` | Remove acentuação. | `"ação" → "acao"` |
+| `insert($table,$data,$conn)` | INSERT parametrizado por tabela/colunas. | — |
 | `selecionarDados($sql,$conn)` | SELECT (PDO) com retorno padronizado. | — |
 | `cadastrarDados($sql,$conn)` | INSERT (PDO) com `lastInsertId()`. | — |
 | `atualizarDados($sql,$conn)` | UPDATE (PDO) – exige `WHERE`. | — |
 | `deletarDados($sql,$conn)` | DELETE (PDO) – exige `WHERE`. | — |
 | `consultarCEP($cep)` | ViaCEP (`ext-curl`). | `consultarCEP('01001-000')` |
-| `urlValida($url,$checkOnline=false)` | Valida formato e opcionalmente checa HTTP. | `urlValida('https://.../', true)` |
+| `urlValida($url,$checkOnline=true)` | Valida formato e opcionalmente checa HTTP. | `urlValida('https://.../', true)` |
 
 ---
 
@@ -120,20 +132,31 @@ $c = new Cotidiano();
 
 ```php
 $c->somenteNumeros('(21) 99999-0000');     // "21999990000"
-$c->mascararCpf('12345678901');            // "123.456.789-01"
+$c->mascararCpf('12345678909');            // "123.456.789-09"
+$c->validarCpf('123.456.789-09');          // true/false
+$c->limparCpf('123.456.789-09');           // "12345678909"
+
+$c->mascararCnpj('11222333000181');        // "11.222.333/0001-81"
 $c->validarCnpj('11.222.333/0001-81');     // true/false
+$c->limparCnpj('11.222.333/0001-81');      // "11222333000181"
+$c->cnpjNumerico('11222333000181');        // true
+$c->cnpjAlfanumerico('12ABC34501DE35');    // true/false
+
 $c->removerAcentos('João da Silva');       // "Joao da Silva"
+$c->letrasMinusculas(['PHP', 'php']);      // ['php']
 ```
 
 ### 🕒 Datas e Tempo
 
 ```php
-$c->contarTempo('2025-01-01','2025-01-10','dias'); // "9 dias"
-$c->retornarDiaDaSemana('2025-10-22');             // "Quarta-feira"
-$c->ajustarData('2025-10-22', 3);                  // "2025-10-25"
-$c->retornarDiaUtil('2025-10-24');                 // "2025-10-27"
-$c->formatarData('2025-10-22');                    // "22/10/2025"
-$c->gerarSenhaRandomica(20);                       // "..."
+$c->contarTempo('2025-01-01', '2025-01-10', 'dias', true);          // "9 dias"
+$c->contarTempo('2025-01-01 08:00', '2025-01-01 10:35', 'minutos'); // 155
+$c->contarTempo('2025-01-01 08:00', '2025-01-01 10:35', 'horas_minutos'); // "2:35"
+$c->retornarDiaDaSemana('2025-10-22');                              // "Quarta-feira"
+$c->ajustarData('2025-10-22', 3);                                   // "2025-10-25"
+$c->retornarDiaUtil('2025-10-24');                                  // "2025-10-27"
+$c->formatarData('2025-10-22');                                     // "22/10/2025"
+$c->gerarSenhaRandomica(20);                                        // "..."
 ```
 
 ### 🧮 Banco de Dados (PDO)
@@ -148,23 +171,23 @@ $pdo = new PDO('mysql:host=localhost;dbname=app;charset=utf8mb4', 'user', 'pass'
 
 $c = new Cotidiano();
 
+// INSERT parametrizado por array
+$r = $c->insert('clientes', [
+  'nome'  => 'Ana',
+  'email' => 'ana@exemplo.com'
+], $pdo);
+
 // SELECT
 $r = $c->selecionarDados("SELECT id,nome FROM clientes LIMIT 10", $pdo);
 
-// INSERT
-$r = $c->cadastrarDados("
-  INSERT INTO clientes (nome, email) VALUES ('Ana','ana@exemplo.com')
-", $pdo);
+// INSERT com SQL livre
+$r = $c->cadastrarDados("\n  INSERT INTO clientes (nome, email) VALUES ('Ana','ana@exemplo.com')\n", $pdo);
 
 // UPDATE (com WHERE)
-$r = $c->atualizarDados("
-  UPDATE clientes SET nome='Ana Maria' WHERE id=123
-", $pdo);
+$r = $c->atualizarDados("\n  UPDATE clientes SET nome='Ana Maria' WHERE id=123\n", $pdo);
 
 // DELETE (com WHERE)
-$r = $c->deletarDados("
-  DELETE FROM clientes WHERE id=123
-", $pdo);
+$r = $c->deletarDados("\n  DELETE FROM clientes WHERE id=123\n", $pdo);
 ```
 
 ### 🌐 HTTP Utilitários
@@ -174,10 +197,10 @@ $r = $c->deletarDados("
 $cep = $c->consultarCEP('01001-000'); // array ou null
 
 // Verificação de URL (somente formato)
-$check = $c->urlValida('https://www.linkedin.com/in/usuario');
+$check = $c->urlValida('https://www.linkedin.com/in/usuario', false);
 
 // Verificação de URL (formato + online)
-$check = $c->urlValida('https://www.linkedin.com/in/usuario', true);
+$check = $c->urlValida('https://www.linkedin.com/in/usuario');
 /*
 [
   'url' => 'https://...',
@@ -193,7 +216,7 @@ $check = $c->urlValida('https://www.linkedin.com/in/usuario', true);
 
 ## 📤 Padrão de Retorno (PDO)
 
-Todos os métodos de banco retornam um array associativo:
+Todos os métodos de banco retornam um array associativo no mesmo padrão base:
 
 ```php
 [
@@ -204,18 +227,23 @@ Todos os métodos de banco retornam um array associativo:
 ]
 ```
 
-Mensagens comuns:
-- `"Não há registros com a instrução SQL: ..."` quando `rowCount() === 0`
-- Exceções de `PDOException` retornadas em `"msg_erro"`
+Observações:
+- `insert()` retorna em `data` o `id` gerado e a `sql` montada.
+- `selecionarDados()` retorna `fetchAll()` em `data`.
+- Quando não há registros afetados, a mensagem costuma seguir o padrão:  
+  `"Não há registros com a instrução SQL: ..."`
+- Exceções de `PDOException` são retornadas em `msg_erro` e registradas com `error_log()`.
 
 ---
 
 ## 🔒 Boas Práticas e Segurança
 
-- **SQL dinâmico:** use **prepared statements** e `bindValue()` antes de passar a query final quando envolver dados de usuário.  
+- **SQL dinâmico:** use **prepared statements** e `bindValue()` sempre que houver dados de usuário.  
 - **Proteção:** `UPDATE` e `DELETE` **exigem `WHERE`** — bloqueio por design.  
+- **Insert seguro:** `insert()` valida nomes de tabela/colunas e usa placeholders nomeados.  
 - **HTTP:** sites como LinkedIn podem bloquear bots; ainda assim, códigos HTTP > 0 indicam resposta.  
-- **Timezone:** `contarTempo()` aceita *timezone* (padrão `America/Sao_Paulo`).
+- **Timezone:** `contarTempo()` aceita *timezone* (padrão `America/Sao_Paulo`).  
+- **Documentos:** `mascararCpf()` e `mascararCnpj()` apenas formatam; a validação real deve ser feita com `validarCpf()` e `validarCnpj()`.
 
 ---
 
@@ -223,16 +251,17 @@ Mensagens comuns:
 
 - PHP **8.1+**  
 - Extensões: `PDO`, `mbstring`, `json`, `ctype`, `curl`  
-- Testado em **MariaDB 10.4+** e **MySQL 8.0+**
+- Testado para cenários comuns em **MariaDB 10.4+** e **MySQL 8.0+**
 
 ---
 
 ## 🧭 Roadmap
 
-- [ ] Prepared statements internos opcionais (helper)  
+- [ ] Prepared statements internos opcionais para `select/update/delete`  
 - [ ] Normalizador de datas multi-formato (`d/m/Y`, `Y-m-d H:i`, etc.)  
 - [ ] Máscaras genéricas (telefone, CEP)  
 - [ ] Conversão de moedas e formatação pt-BR ↔ ISO  
+- [ ] Cobertura de testes automatizados para `Cpf`, `Cnpj` e `Cotidiano`  
 
 ---
 
@@ -247,6 +276,14 @@ Antes de contribuir:
 ---
 
 ## 🧾 Changelog
+
+### v1.2.0
+- **Novo:** classes especialistas `Cpf` e `Cnpj`  
+- **Novo:** `limparCpf()` e `limparCnpj()` expostos pela `Cotidiano`  
+- **Novo:** suporte a **CNPJ alfanumérico** com manutenção do formato tradicional  
+- **Novo:** `insert()` com placeholders nomeados e validação básica de tabela/colunas  
+- **Ajuste:** `Cotidiano` atua como fachada para documentos e centralizador dos utilitários  
+- **Docs:** README atualizado com os novos métodos e exemplos  
 
 ### v1.1.0
 - **Novo:** `consultarCEP()` (ViaCEP, `ext-curl`)  

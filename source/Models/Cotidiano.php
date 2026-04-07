@@ -10,70 +10,67 @@ use \Exception;
 use \DateTimeZone;
 use \PDOException;
 use \PDO;
+use Source\Models\Cnpj;
+use Source\Models\Cpf;
 
 final class Cotidiano
 {
+
+    private Cnpj $cnpj;
+    private Cpf $cpf;
+
+
+    public function __construct()
+    {
+        $this->cnpj = new Cnpj;
+        $this->cpf = new Cpf();
+    }
+
+    /**
+     * CNPJ
+     */
+
+    public function mascararCnpj(string $cnpj): string
+    {
+        return $this->cnpj->mascararCnpj($cnpj);
+    }
+
+    public function validarCnpj(string $cnpj): bool
+    {
+        return $this->cnpj->validarCnpj($cnpj);
+    }
+
+    public function limparCnpj(string $cnpj): string
+    {
+        return $this->cnpj->limparCnpj($cnpj);
+    }
+
+    /**
+     * CPF
+     */
+    public function mascararCpf(string $cpf): string
+    {
+        return $this->cpf->mascararCpf($cpf);
+    }
+
+    public function validarCpf(string $cpf): bool
+    {
+        return $this->cpf->validarCpf($cpf);
+    }
+
+    public function limparCpf(string $cpf): string
+    {
+        return $this->cpf->limparCpf($cpf);
+    }
 
     public function somenteNumeros(?string $valor): string
     {
         return preg_replace('/\D+/', '', $valor ?? '');
     }
 
-    public function mascararCpf(string $cpf): string
-    {
-        $d = preg_replace('/\D+/', '', $cpf ?? '');
-        if (strlen($d) !== 11) return $cpf;
-        return substr($d, 0, 3) . '.' . substr($d, 3, 3) . '.' . substr($d, 6, 3) . '-' . substr($d, 9, 2);
-    }
 
-    public function mascararCnpj(string $cnpj): string
-    {
-        $d = preg_replace('/\D+/', '', $cnpj ?? '');
-        if (strlen($d) !== 14) return $cnpj;
-        return substr($d, 0, 2) . '.' . substr($d, 2, 3) . '.' . substr($d, 5, 3) . '/' . substr($d, 8, 4) . '-' . substr($d, 12, 2);
-    }
-    public function validarCnpj(string $cnpj): bool
-    {
-        $cnpj = preg_replace('/\D+/', '', $cnpj ?? '');
-        if (strlen($cnpj) !== 14 || preg_match('/^(\d)\1{13}$/', $cnpj)) {
-            return false;
-        }
-        $peso1 = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
-        $peso2 = [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
 
-        $calc = function (array $peso, string $num): int {
-            $sum = 0;
-            foreach ($peso as $i => $p) {
-                $sum += (int)$num[$i] * $p;
-            }
-            $resto = $sum % 11;
-            return ($resto < 2) ? 0 : 11 - $resto;
-        };
 
-        $d1 = $calc($peso1, substr($cnpj, 0, 12));
-        $d2 = $calc($peso2, substr($cnpj, 0, 12) . $d1);
-        return $cnpj[12] == (string)$d1 && $cnpj[13] == (string)$d2;
-    }
-
-    public function validarCpf(string $cpf): bool
-    {
-        $cpf = preg_replace('/\D+/', '', $cpf ?? '');
-        if (strlen($cpf) !== 11 || preg_match('/^(\d)\1{10}$/', $cpf)) {
-            return false;
-        }
-
-        for ($t = 9; $t < 11; $t++) {
-            $sum = 0;
-            for ($i = 0; $i < $t; $i++) {
-                $sum += (int)$cpf[$i] * (($t + 1) - $i);
-            }
-            $d = ((10 * $sum) % 11) % 10;
-            if ($cpf[$t] != $d) {
-                return false;
-            }
-        }
-        return true;
-    }
 
     public function contarTempo(
         $dataInicio,

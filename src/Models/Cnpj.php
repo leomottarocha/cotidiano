@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Source\Models;
+namespace src\Models;
 
 final class Cnpj
 {

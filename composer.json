@@ -24,7 +24,7 @@
     },
     "autoload": {
         "psr-4": {
-            "Source\\": "source/"
+            "Src\\": "src/"
         }
     },
     "autoload-dev": {

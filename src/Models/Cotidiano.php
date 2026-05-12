@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Source\Models;
+namespace Src\Models;
 
 use \DateTime;
 use \DateInterval;
@@ -10,16 +10,14 @@ use \Exception;
 use \DateTimeZone;
 use \PDOException;
 use \PDO;
-use Source\Models\Cnpj;
-use Source\Models\Cpf;
+use Src\Models\Cnpj;
+use Src\Models\Cpf;
 
 final class Cotidiano
 {
 
     private Cnpj $cnpj;
     private Cpf $cpf;
-
-
     public function __construct()
     {
         $this->cnpj = new Cnpj;
@@ -67,10 +65,6 @@ final class Cotidiano
     {
         return preg_replace('/\D+/', '', $valor ?? '');
     }
-
-
-
-
 
     public function contarTempo(
         $dataInicio,
@@ -207,7 +201,7 @@ final class Cotidiano
         }
     }
 
-    public function retornarDiaUtil($data_desligamento)
+    public function retornarDiaUtil(string $data_desligamento)
     {
         $dia_semana = mb_strtolower($this->retornarDiaDaSemana($data_desligamento) ?? "");
 
@@ -224,25 +218,29 @@ final class Cotidiano
         return $this->ajustarData($data_desligamento, $dias_para_ajustar);
     }
 
-    public function formatarData($data, $formato = "d/m/Y")
-    {
-        // Verifica se o valor de $data é uma string não vazia
-        if (empty($data) || !is_string($data)) {
-            return "-";
-        }
-
-        // Tenta criar o objeto DateTime com o formato 'Y-m-d'
-        $data_obj = DateTime::createFromFormat('Y-m-d', $data);
-
-        // Verifica se a data foi criada corretamente e corresponde ao formato 'Y-m-d'
-        if ($data_obj && $data_obj->format('Y-m-d') === $data) {
-            // Retorna a data formatada de acordo com o formato desejado
-            return $data_obj->format($formato);
-        }
-
-        // Se a data não for válida, retorna "-"
+public function formatarData(string $data, string $formato = "d/m/Y")
+{
+    if (empty($data) || !is_string($data)) {
         return "-";
     }
+
+    $data = trim($data);
+
+    $formatosAceitos = [
+        'Y-m-d',
+        'd/m/Y',
+    ];
+
+    foreach ($formatosAceitos as $formatoEntrada) {
+        $dataObj = DateTime::createFromFormat($formatoEntrada, $data);
+
+        if ($dataObj && $dataObj->format($formatoEntrada) === $data) {
+            return $dataObj->format($formato);
+        }
+    }
+
+    return "-";
+}
 
     public function gerarSenhaRandomica(int $tamanho = 16)
     {

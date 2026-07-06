@@ -201,7 +201,7 @@ final class Cotidiano
         }
     }
 
-    public function retornarDiaUtil(string $data_desligamento)
+    public function retornarDiaUtil(string $data_desligamento, int $acrescentar_dia = 0)
     {
         $dia_semana = mb_strtolower($this->retornarDiaDaSemana($data_desligamento) ?? "");
 
@@ -214,33 +214,34 @@ final class Cotidiano
         $dias_ajuste_default = 1;
 
         $dias_para_ajustar = isset($dias_ajuste[$dia_semana]) ? $dias_ajuste[$dia_semana] : $dias_ajuste_default;
+        $dias_para_ajustar  = $dias_para_ajustar + $acrescentar_dia;
 
         return $this->ajustarData($data_desligamento, $dias_para_ajustar);
     }
 
-public function formatarData(string $data, string $formato = "d/m/Y")
-{
-    if (empty($data) || !is_string($data)) {
+    public function formatarData(string $data, string $formato = "d/m/Y")
+    {
+        if (empty($data) || !is_string($data)) {
+            return "-";
+        }
+
+        $data = trim($data);
+
+        $formatosAceitos = [
+            'Y-m-d',
+            'd/m/Y',
+        ];
+
+        foreach ($formatosAceitos as $formatoEntrada) {
+            $dataObj = DateTime::createFromFormat($formatoEntrada, $data);
+
+            if ($dataObj && $dataObj->format($formatoEntrada) === $data) {
+                return $dataObj->format($formato);
+            }
+        }
+
         return "-";
     }
-
-    $data = trim($data);
-
-    $formatosAceitos = [
-        'Y-m-d',
-        'd/m/Y',
-    ];
-
-    foreach ($formatosAceitos as $formatoEntrada) {
-        $dataObj = DateTime::createFromFormat($formatoEntrada, $data);
-
-        if ($dataObj && $dataObj->format($formatoEntrada) === $data) {
-            return $dataObj->format($formato);
-        }
-    }
-
-    return "-";
-}
 
     public function gerarSenhaRandomica(int $tamanho = 16)
     {
